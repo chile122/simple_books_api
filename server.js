@@ -10,7 +10,8 @@ const router = jsonServer.router('./db.json')
 const db = JSON.parse(fs.readFileSync('./db.json', 'UTF-8'))
 
 const middlewares = jsonServer.defaults();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
+
 
 server.use(middlewares);
 
@@ -131,15 +132,20 @@ server.get('/auth/users', (req, res) => {
 //Xem thông tin user theo email
 server.get('/auth/users/:email', ((req, res)=> {
   //let userdb = JSON.parse(fs.readFileSync('./database.json', 'UTF-8'));
-  let email = req.params.email;
+	const email = req.params.email;
  
-let result = db.users.filter(user =>  user.email == email)
-
-  const status = 200
-    
-    res.status(status).json({status, result})
-    return
-}))
+	const exist_email = db.users.findIndex(user =>  user.email == email)
+	const result = db.users.filter(user =>  user.email == email)
+	if (exist_email !== -1)
+	{
+		const status = 200
+		return res.status(status).json({status, result})
+	} else {
+    return res.status(401).json({
+      status: 401,
+      message: "Email is not found!!",
+    })
+}}))
 
 //delete user by email
 server.delete('/auth/users/:email', (req, res) => {
@@ -296,6 +302,6 @@ server.patch('/auth/orders/:id', (req, res) => {
 
 server.use(router)
 
-server.listen(3000, () => {
+server.listen(PORT, () => {
   console.log('Run Auth API Server')
 })
