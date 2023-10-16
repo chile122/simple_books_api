@@ -7,6 +7,8 @@ const server = jsonServer.create()
 const router = jsonServer.router('./database.json')
 const userdb = JSON.parse(fs.readFileSync('./users.json', 'UTF-8'))
 
+const PORT = process.env.PORT || 3000;
+
 server.use(bodyParser.urlencoded({extended: true}))
 server.use(bodyParser.json())
 server.use(jsonServer.defaults());
@@ -115,9 +117,39 @@ server.use(/^(?!\/auth).*$/,  (req, res, next) => {
     res.status(status).json({status, message})
   }
 })
+//view all users
+server.get("/auth/users", (req, res) => {
+  res.status(200).json({
+    status: 200,
+    data: {
+      users: db.users,
+    },
+  });
+});
+
+//view user by email
+server.get("/auth/users/:email", (req, res) => {
+  //let userdb = JSON.parse(fs.readFileSync('./database.json', 'UTF-8'));
+  const email = req.params.email;
+
+  const exist_email = db.users.findIndex((user) => user.email == email);
+  const result = db.users.filter((user) => user.email == email);
+  if (exist_email !== -1) {
+    const status = 200;
+    return res.status(status).json({ status, result });
+  } else {
+    return res.status(401).json({
+      status: 401,
+      message: "Email is not found!!",
+    });
+  }
+});
+
+//do something
+//end
 
 server.use(router)
 
-server.listen(8000, () => {
+server.listen(PORT, () => {
   console.log('Run Auth API Server')
 })
